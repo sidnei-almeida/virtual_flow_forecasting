@@ -1,0 +1,22 @@
+[global]
+developmentMode = false
+
+[server]
+headless = true
+port = 8501
+enableCORS = true
+enableXsrfProtection = true
+
+[browser]
+gatherUsageStats = false
+
+[theme]
+# Tema Dark Moderno
+primaryColor = "#00D4AA"  # Verde água vibrante
+backgroundColor = "#0E1117"  # Preto profundo
+secondaryBackgroundColor = "#1E1E1E"  # Cinza escuro
+textColor = "#FAFAFA"  # Branco suave
+font = "Inter, sans-serif"
+
+[client]
+showErrorDetails = true
