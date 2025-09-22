@@ -37,56 +37,93 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
+# URLs dos arquivos no GitHub (raw.githubusercontent.com)
+MODEL_URL = "https://github.com/sidnei-almeida/virtual_flow_forecasting/raw/refs/heads/main/model/meu_modelo_lstm.keras"
+TRAIN_DATA_URL = "https://raw.githubusercontent.com/sidnei-almeida/virtual_flow_forecasting/refs/heads/main/data/train_data_scaled_manual.csv"
+TEST_DATA_URL = "https://raw.githubusercontent.com/sidnei-almeida/virtual_flow_forecasting/refs/heads/main/data/test_data_scaled_manual.csv"
+RAW_DATA_URL = "https://raw.githubusercontent.com/sidnei-almeida/virtual_flow_forecasting/refs/heads/main/data/riser_pq_uni.csv"
+TRAINING_HISTORY_URL = "https://raw.githubusercontent.com/sidnei-almeida/virtual_flow_forecasting/refs/heads/main/model/training_history.json"
+MODEL_METRICS_URL = "https://raw.githubusercontent.com/sidnei-almeida/virtual_flow_forecasting/refs/heads/main/model/model_metrics.json"
+
 # Função para carregar dados
 @st.cache_data
 def load_data():
-    """Carrega os dados de treino, teste e originais"""
+    """Carrega os dados de treino, teste e originais do GitHub"""
     try:
-        train_df = pd.read_csv('data/train_data_scaled_manual.csv')
-        test_df = pd.read_csv('data/test_data_scaled_manual.csv')
-        raw_df = pd.read_csv('data/riser_pq_uni.csv')
+        st.info("📥 Carregando dados do GitHub...")
+        
+        train_df = pd.read_csv(TRAIN_DATA_URL)
+        test_df = pd.read_csv(TEST_DATA_URL)
+        raw_df = pd.read_csv(RAW_DATA_URL)
+        
+        st.success("✅ Dados carregados com sucesso!")
         return train_df, test_df, raw_df
-    except FileNotFoundError as e:
-        st.error(f"Erro ao carregar dados: {e}")
+    except Exception as e:
+        st.error(f"❌ Erro ao carregar dados: {e}")
+        st.info("💡 Verificando conexão com o GitHub...")
         return None, None, None
 
 # Função para carregar modelo
 @st.cache_resource
 def load_lstm_model():
-    """Carrega o modelo LSTM treinado"""
+    """Carrega o modelo LSTM treinado do GitHub"""
     try:
-        model = load_model('model/meu_modelo_lstm.keras')
+        st.info("🤖 Carregando modelo LSTM do GitHub...")
+        
+        # Download temporário do modelo
+        import tempfile
+        import requests
+        
+        response = requests.get(MODEL_URL)
+        response.raise_for_status()
+        
+        with tempfile.NamedTemporaryFile(suffix='.keras', delete=False) as tmp_file:
+            tmp_file.write(response.content)
+            tmp_file_path = tmp_file.name
+        
+        model = load_model(tmp_file_path)
+        
+        # Limpar arquivo temporário
+        import os
+        os.unlink(tmp_file_path)
+        
+        st.success("✅ Modelo carregado com sucesso!")
         return model
     except Exception as e:
-        st.error(f"Erro ao carregar modelo: {e}")
+        st.error(f"❌ Erro ao carregar modelo: {e}")
+        st.info("💡 Verificando conexão com o GitHub...")
         return None
 
 # Função para carregar histórico de treinamento
 @st.cache_data
 def load_training_history():
-    """Carrega o histórico de treinamento"""
+    """Carrega o histórico de treinamento do GitHub"""
     try:
-        with open('model/training_history.json', 'r') as f:
-            history = json.load(f)
+        import requests
+        
+        response = requests.get(TRAINING_HISTORY_URL)
+        response.raise_for_status()
+        
+        history = response.json()
         return history
-    except FileNotFoundError:
-        return None
     except Exception as e:
-        st.error(f"Erro ao carregar histórico: {e}")
+        st.warning(f"⚠️ Histórico de treinamento não encontrado: {e}")
         return None
 
 # Função para carregar métricas do modelo
 @st.cache_data
 def load_model_metrics():
-    """Carrega as métricas salvas do modelo"""
+    """Carrega as métricas salvas do modelo do GitHub"""
     try:
-        with open('model/model_metrics.json', 'r') as f:
-            metrics = json.load(f)
+        import requests
+        
+        response = requests.get(MODEL_METRICS_URL)
+        response.raise_for_status()
+        
+        metrics = response.json()
         return metrics
-    except FileNotFoundError:
-        return None
     except Exception as e:
-        st.error(f"Erro ao carregar métricas: {e}")
+        st.warning(f"⚠️ Métricas do modelo não encontradas: {e}")
         return None
 
 # Carregar dados e modelo
@@ -993,8 +1030,14 @@ if train_df is not None and test_df is not None and raw_df is not None and model
                 )
 
 else:
-    st.error("❌ Erro ao carregar dados ou modelo. Verifique se os arquivos estão no local correto.")
-    st.info("📁 Estrutura esperada:\n- `data/train_data_scaled_manual.csv`\n- `data/test_data_scaled_manual.csv`\n- `data/riser_pq_uni.csv`\n- `model/meu_modelo_lstm.keras`")
+    st.error("❌ Erro ao carregar dados ou modelo do GitHub.")
+    st.info("""
+    📁 **Verificando conexão com o GitHub:**
+    - [Dados de Treino](https://raw.githubusercontent.com/sidnei-almeida/virtual_flow_forecasting/refs/heads/main/data/train_data_scaled_manual.csv)
+    - [Dados de Teste](https://raw.githubusercontent.com/sidnei-almeida/virtual_flow_forecasting/refs/heads/main/data/test_data_scaled_manual.csv)
+    - [Dados Originais](https://raw.githubusercontent.com/sidnei-almeida/virtual_flow_forecasting/refs/heads/main/data/riser_pq_uni.csv)
+    - [Modelo LSTM](https://github.com/sidnei-almeida/virtual_flow_forecasting/raw/refs/heads/main/model/meu_modelo_lstm.keras)
+    """)
 
 # Footer
 st.markdown("---")
