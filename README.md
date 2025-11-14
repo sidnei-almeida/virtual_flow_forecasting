@@ -4,12 +4,21 @@
 
 **REST API for Intelligent Multiphase Flow Rate Prediction using LSTM Deep Learning**
 
+<div align="left">
+
+[![Code](https://img.shields.io/badge/Code-GitHub-black?style=for-the-badge&logo=github)](https://github.com/sidnei-almeida/virtual_flow_forecasting)
+[![App](https://img.shields.io/badge/App-Live-00A8CC?style=for-the-badge&logo=render&logoColor=white)](https://virtual-flow-forecasting.onrender.com/)
+
+</div>
+
 [![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![TensorFlow](https://img.shields.io/badge/TensorFlow-FF6F00?style=for-the-badge&logo=tensorflow&logoColor=white)](https://tensorflow.org)
 [![License](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](LICENSE)
 
 *Production-ready REST API for predicting liquid flow rates in industrial pipe systems*
+
+**Base URL**: `https://virtual-flow-forecasting.onrender.com`
 
 [Features](#-features) • [Quick Start](#-quick-start) • [API Documentation](#-api-documentation) • [Deployment](#-deployment) • [Examples](#-examples)
 
@@ -191,14 +200,14 @@ The API will be available at:
 ### Base URL
 
 ```
-Production:  [Provided after Render deployment]
+Production:  https://virtual-flow-forecasting.onrender.com
 Development: http://localhost:8000
 ```
 
 ### Interactive Documentation
 
-- **Swagger UI**: `/docs` - Interactive API explorer
-- **ReDoc**: `/redoc` - Alternative documentation format
+- **Swagger UI**: [https://virtual-flow-forecasting.onrender.com/docs](https://virtual-flow-forecasting.onrender.com/docs) - Interactive API explorer
+- **ReDoc**: [https://virtual-flow-forecasting.onrender.com/redoc](https://virtual-flow-forecasting.onrender.com/redoc) - Alternative documentation format
 
 ---
 
@@ -211,6 +220,11 @@ GET /
 ```
 
 Returns basic API information.
+
+**Example Request:**
+```bash
+curl https://virtual-flow-forecasting.onrender.com/
+```
 
 **Response:**
 ```json
@@ -232,6 +246,11 @@ GET /health
 
 Verifies API status and model availability.
 
+**Example Request:**
+```bash
+curl https://virtual-flow-forecasting.onrender.com/health
+```
+
 **Response:**
 ```json
 {
@@ -250,6 +269,21 @@ POST /predict
 ```
 
 Makes a single liquid flow rate prediction.
+
+**Example Request:**
+```bash
+curl -X POST "https://virtual-flow-forecasting.onrender.com/predict" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "pressure_1": 0.7761,
+    "pressure_2": 0.7281,
+    "pressure_3": 0.7361,
+    "pressure_4": 0.7560,
+    "pressure_5": 0.7811,
+    "pressure_6": 0.7690,
+    "pressure_7": 0.1330
+  }'
+```
 
 **Request Body:**
 ```json
@@ -286,6 +320,18 @@ POST /predict/batch
 
 Makes multiple predictions in a single request.
 
+**Example Request:**
+```bash
+curl -X POST "https://virtual-flow-forecasting.onrender.com/predict/batch" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "pressures": [
+      [0.7761, 0.7281, 0.7361, 0.7560, 0.7811, 0.7690, 0.1330],
+      [0.7672, 0.7715, 0.7730, 0.7897, 0.8148, 0.8199, 0.4696]
+    ]
+  }'
+```
+
 **Request Body:**
 ```json
 {
@@ -314,6 +360,11 @@ GET /model/info
 
 Returns detailed information about the LSTM model.
 
+**Example Request:**
+```bash
+curl https://virtual-flow-forecasting.onrender.com/model/info
+```
+
 **Response:**
 ```json
 {
@@ -338,6 +389,11 @@ GET /model/metrics
 
 Returns model evaluation metrics.
 
+**Example Request:**
+```bash
+curl https://virtual-flow-forecasting.onrender.com/model/metrics
+```
+
 **Response:**
 ```json
 {
@@ -360,7 +416,7 @@ Returns model evaluation metrics.
 ```python
 import requests
 
-API_URL = "http://localhost:8000"
+API_URL = "https://virtual-flow-forecasting.onrender.com"
 
 # Make a prediction
 response = requests.post(
@@ -387,7 +443,7 @@ print(f"Predicted flow rate: {result['predicted_flow_rate']}")
 ```python
 import requests
 
-API_URL = "http://localhost:8000"
+API_URL = "https://virtual-flow-forecasting.onrender.com"
 
 # Make batch predictions
 response = requests.post(
@@ -424,7 +480,7 @@ const predictionData = {
   pressure_7: 0.1330
 };
 
-fetch('http://localhost:8000/predict', {
+fetch('https://virtual-flow-forecasting.onrender.com/predict', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
@@ -447,7 +503,7 @@ fetch('http://localhost:8000/predict', {
 ```javascript
 async function predictFlowRate(pressures) {
   try {
-    const response = await fetch('http://localhost:8000/predict', {
+    const response = await fetch('https://virtual-flow-forecasting.onrender.com/predict', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -490,7 +546,7 @@ predictFlowRate(pressures)
 <summary><b>Health Check</b></summary>
 
 ```bash
-curl http://localhost:8000/health
+curl https://virtual-flow-forecasting.onrender.com/health
 ```
 </details>
 
@@ -498,7 +554,7 @@ curl http://localhost:8000/health
 <summary><b>Single Prediction</b></summary>
 
 ```bash
-curl -X POST "http://localhost:8000/predict" \
+curl -X POST "https://virtual-flow-forecasting.onrender.com/predict" \
   -H "Content-Type: application/json" \
   -d '{
     "pressure_1": 0.7761,
@@ -692,7 +748,7 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 ### Resources
 
-- **API Documentation**: `/docs` (Swagger UI) or `/redoc` (ReDoc)
+- **API Documentation**: [https://virtual-flow-forecasting.onrender.com/docs](https://virtual-flow-forecasting.onrender.com/docs) (Swagger UI) or [https://virtual-flow-forecasting.onrender.com/redoc](https://virtual-flow-forecasting.onrender.com/redoc) (ReDoc)
 - **Frontend Guide**: See `API_ENDPOINTS.txt`
 - **Issues**: Use GitHub Issues for bug reports
 - **Questions**: Contact the development team
