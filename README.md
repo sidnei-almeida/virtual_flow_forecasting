@@ -1,327 +1,419 @@
-# 🌊 Virtual Flow Forecasting
+# 🌊 Virtual Flow Forecasting API
 
-[![Python](https://img.shields.io/badge/Python-3.13+-blue.svg)](https://python.org)
-[![TensorFlow](https://img.shields.io/badge/TensorFlow-2.15+-orange.svg)](https://tensorflow.org)
-[![Streamlit](https://img.shields.io/badge/Streamlit-1.28+-red.svg)](https://streamlit.io)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+REST API for liquid flow rate prediction using LSTM Deep Learning model.
 
-> **Sistema Avançado de Previsão de Vazão Multifásica** utilizando Deep Learning para análise de fluxo em dutos industriais.
+## 📋 Table of Contents
 
-## 📋 Índice
+- [Overview](#-overview)
+- [Features](#-features)
+- [Endpoints](#-endpoints)
+- [Installation](#-installation)
+- [Local Usage](#-local-usage)
+- [Deploy on Render](#-deploy-on-render)
+- [Usage Examples](#-usage-examples)
+- [API Documentation](#-api-documentation)
 
-- [Visão Geral](#-visão-geral)
-- [Características](#-características)
-- [Arquitetura do Projeto](#-arquitetura-do-projeto)
-- [Dados](#-dados)
-- [Modelo LSTM](#-modelo-lstm)
-- [Aplicação Streamlit](#-aplicação-streamlit)
-- [Instalação](#-instalação)
-- [Uso](#-uso)
-- [Resultados](#-resultados)
-- [Contribuição](#-contribuição)
-- [Licença](#-licença)
+## 🎯 Overview
 
-## 🎯 Visão Geral
+This API provides REST endpoints for predicting liquid flow rate in industrial pipe systems using a trained LSTM (Long Short-Term Memory) model. The model uses 7 normalized pressure features (0-1) to predict liquid flow rate.
 
-O **Virtual Flow Forecasting** é um sistema de inteligência artificial que utiliza redes neurais LSTM (Long Short-Term Memory) para prever a vazão de líquidos em sistemas de dutos industriais. O projeto combina técnicas avançadas de machine learning com uma interface web interativa para análise e previsão de fluxo multifásico.
+### 🎯 Objectives
 
-### 🎯 Objetivos
+- **RESTful API**: Simple and standardized interface for predictions
+- **High Performance**: Single model loading on initialization
+- **Easy Deploy**: Ready-to-deploy configuration for Render
+- **Auto Documentation**: Integrated Swagger UI
 
-- **Previsão Precisa**: Desenvolver modelos de deep learning para previsão de vazão de líquidos
-- **Análise em Tempo Real**: Interface web para análise interativa de dados
-- **Visualização Avançada**: Gráficos dinâmicos e métricas de performance
-- **Deploy Simplificado**: Aplicação web acessível via GitHub Pages
+## ✨ Features
 
-## ✨ Características
+- ✅ **Single Prediction**: Endpoint for a single prediction
+- ✅ **Batch Prediction**: Endpoint for multiple simultaneous predictions
+- ✅ **Health Check**: Monitor API and model status
+- ✅ **Model Information**: Endpoint to query architecture and parameters
+- ✅ **Metrics**: Access to model evaluation metrics
+- ✅ **Data Validation**: Automatic input validation with Pydantic
+- ✅ **CORS Enabled**: Ready for frontend integration
+- ✅ **Interactive Documentation**: Swagger UI and ReDoc
 
-### 🤖 **Inteligência Artificial**
-- **Rede Neural LSTM** otimizada para séries temporais
-- **Preprocessamento avançado** com normalização MinMax
-- **Métricas de avaliação** abrangentes (MSE, RMSE, MAE, R²)
-- **Histórico de treinamento** com análise de convergência
+## 🚀 Endpoints
 
-### 📊 **Análise de Dados**
-- **35,369 registros** de dados reais de sensores industriais
-- **7 features** de pressão em diferentes posições do duto
-- **Dados multifásicos** (gás e líquido) com alta resolução temporal
-- **Visualização interativa** com Plotly
+### GET `/`
+Returns basic API information.
 
-### 🌐 **Interface Web**
-- **Design moderno** com tema dark e navegação intuitiva
-- **Previsões em tempo real** com validação de entrada
-- **Dashboard completo** com métricas e gráficos
-- **Carregamento remoto** direto do GitHub
-
-## 🏗️ Arquitetura do Projeto
-
-```
-virtual_flow_forecasting/
-├── 📁 data/                          # Dados do projeto
-│   ├── riser_pq_uni.csv             # Dados originais (35K registros)
-│   ├── train_data_scaled_manual.csv  # Dados de treino normalizados
-│   └── test_data_scaled_manual.csv   # Dados de teste normalizados
-├── 📁 model/                         # Modelos e métricas
-│   ├── meu_modelo_lstm.keras        # Modelo LSTM treinado
-│   ├── training_history.json        # Histórico de treinamento
-│   └── model_metrics.json           # Métricas de avaliação
-├── 📁 notebooks/                     # Jupyter Notebooks
-│   ├── 1. Data Pre-Processing.ipynb # Preprocessamento de dados
-│   └── 2. LSTM Model Training.ipynb # Treinamento do modelo
-├── 📁 .streamlit/                    # Configurações do Streamlit
-│   ├── config.toml                  # Configuração do tema
-│   └── style.css                    # Estilos customizados
-├── app.py                           # Aplicação Streamlit principal
-├── requirements.txt                 # Dependências Python
-└── README.md                       # Este arquivo
+**Response:**
+```json
+{
+  "message": "Virtual Flow Forecasting API",
+  "version": "1.0.0",
+  "docs": "/docs",
+  "health": "/health"
+}
 ```
 
-## 📊 Dados
+### GET `/health`
+Checks API status and if the model is loaded.
 
-### 📈 **Dataset Principal**
-- **Fonte**: Dados reais de sensores industriais
-- **Período**: 3,000 segundos de medições contínuas
-- **Frequência**: ~11.8 Hz (alta resolução temporal)
-- **Variáveis**: 7 pressões + 2 vazões (gás e líquido)
-
-### 🔧 **Features de Entrada**
-| Variável | Descrição | Posição (m) | Unidade |
-|----------|-----------|-------------|---------|
-| `pressure_1` | Pressão @ x=56.9453 | 56.9 | bar |
-| `pressure_2` | Pressão @ x=60.4141 | 60.4 | bar |
-| `pressure_3` | Pressão @ x=62.7266 | 62.7 | bar |
-| `pressure_4` | Pressão @ x=65.6172 | 65.6 | bar |
-| `pressure_5` | Pressão @ x=68.5078 | 68.5 | bar |
-| `pressure_6` | Pressão @ x=71.3984 | 71.4 | bar |
-| `pressure_7` | Pressão @ x=73.7109 | 73.7 | bar |
-
-### 🎯 **Target**
-- **`liquid_mass_rate`**: Vazão mássica de líquido (kg/s)
-
-### 📊 **Estatísticas dos Dados**
-- **Treino**: 28,295 amostras (80%)
-- **Teste**: 7,074 amostras (20%)
-- **Normalização**: MinMaxScaler (0-1)
-- **Reshape**: (samples, timesteps, features) para LSTM
-
-## 🤖 Modelo LSTM
-
-### 🏗️ **Arquitetura**
-```
-Modelo LSTM:
-├── Input Layer: (1, 7) - 7 features de pressão
-├── LSTM Layer: 50 unidades + Dropout(0.2)
-├── Dense Layer: 25 neurônios + ReLU
-└── Output Layer: 1 neurônio (vazão de líquido)
+**Response:**
+```json
+{
+  "status": "healthy",
+  "model_loaded": true,
+  "message": "API and model working correctly"
+}
 ```
 
-### ⚙️ **Parâmetros**
-- **Parâmetros Totais**: 11,651
-- **Épocas de Treinamento**: 50
-- **Batch Size**: 32
-- **Optimizer**: Adam (lr=0.001)
-- **Loss Function**: Mean Squared Error
+### POST `/predict`
+Makes a single liquid flow rate prediction.
 
-### 📈 **Performance**
-| Métrica | Valor | Interpretação |
-|---------|-------|---------------|
-| **MSE** | 0.000397 | Erro quadrático médio |
-| **RMSE** | 0.019931 | Raiz do erro quadrático médio |
-| **MAE** | 0.008890 | Erro absoluto médio |
-| **R²** | 0.933903 | 93.4% da variância explicada |
+**Request Body:**
+```json
+{
+  "pressure_1": 0.7761,
+  "pressure_2": 0.7281,
+  "pressure_3": 0.7361,
+  "pressure_4": 0.7560,
+  "pressure_5": 0.7811,
+  "pressure_6": 0.7690,
+  "pressure_7": 0.1330
+}
+```
 
-### 📊 **Convergência**
-- **Loss Inicial**: 0.011502 → **Loss Final**: 0.001171
-- **Val Loss Inicial**: 0.003805 → **Val Loss Final**: 0.000397
-- **Overfitting**: Mínimo (validação estável)
+**Response:**
+```json
+{
+  "predicted_flow_rate": 0.325634,
+  "input_pressures": [0.7761, 0.7281, 0.7361, 0.7560, 0.7811, 0.7690, 0.1330]
+}
+```
 
-## 🌐 Aplicação Streamlit
+**Validation:**
+- All pressure values must be in range [0.0, 1.0]
+- All 7 values are required
 
-### 🎨 **Interface**
-- **Tema**: Dark mode profissional
-- **Navegação**: Menu lateral com `streamlit-option-menu`
-- **Responsivo**: Adaptável a diferentes tamanhos de tela
-- **Interativo**: Gráficos Plotly com zoom e hover
+### POST `/predict/batch`
+Makes multiple batch predictions.
 
-### 📱 **Seções Principais**
+**Request Body:**
+```json
+{
+  "pressures": [
+    [0.7761, 0.7281, 0.7361, 0.7560, 0.7811, 0.7690, 0.1330],
+    [0.7672, 0.7715, 0.7730, 0.7897, 0.8148, 0.8199, 0.4696]
+  ]
+}
+```
 
-#### 1. 📈 **Visualização de Dados**
-- Gráficos temporais das pressões
-- Distribuição das variáveis
-- Análise de correlação
-- Estatísticas descritivas
+**Response:**
+```json
+{
+  "predictions": [0.325634, 0.434126],
+  "count": 2
+}
+```
 
-#### 2. 🔮 **Fazer Previsões**
-- **Previsão Individual**: Input manual das 7 pressões
-- **Previsão em Lote**: Upload de arquivo CSV
-- **Dados de Exemplo**: Carregamento automático
-- **Validação**: Verificação de ranges e tipos
+### GET `/model/info`
+Returns information about the LSTM model.
 
-#### 3. 📊 **Avaliação do Modelo**
-- Métricas de performance
-- Gráficos de predição vs real
-- Análise de resíduos
-- Comparação treino/teste
+**Response:**
+```json
+{
+  "architecture": "LSTM(50) + Dense(1)",
+  "parameters": 11651,
+  "input_shape": "(1, 1, 7)",
+  "output_shape": "(1,)",
+  "features": [
+    "pressure_1", "pressure_2", "pressure_3",
+    "pressure_4", "pressure_5", "pressure_6", "pressure_7"
+  ]
+}
+```
 
-#### 4. 🏋️ **Histórico de Treinamento**
-- Curvas de loss e validação
-- Análise de convergência
-- Estatísticas detalhadas
-- Insights de treinamento
+### GET `/model/metrics`
+Returns the model evaluation metrics.
 
-#### 5. ⚙️ **Configurações**
-- Informações do modelo
-- Parâmetros de treinamento
-- Estatísticas dos dados
-- Links e recursos
+**Response:**
+```json
+{
+  "mse": 0.000397,
+  "rmse": 0.019931,
+  "mae": 0.008890,
+  "r2": 0.933903
+}
+```
 
-### 🔗 **Carregamento Remoto**
-- **Modelo**: Carregado diretamente do GitHub
-- **Dados**: CSV files via URLs raw
-- **Métricas**: JSON files para histórico e performance
-- **Cache**: Sistema de cache para performance
+## 📦 Installation
 
-## 🚀 Instalação
+### Prerequisites
+- Python 3.11+
+- pip
 
-### 📋 **Pré-requisitos**
-- Python 3.13+
-- pip (gerenciador de pacotes)
-- Git
+### Local Setup
 
-### 🔧 **Setup Local**
-
-1. **Clone o repositório**
+1. **Clone the repository**
 ```bash
 git clone https://github.com/sidnei-almeida/virtual_flow_forecasting.git
 cd virtual_flow_forecasting
 ```
 
-2. **Crie o ambiente virtual**
+2. **Create a virtual environment**
 ```bash
 python -m venv venv
 source venv/bin/activate  # Linux/Mac
-# ou
+# or
 venv\Scripts\activate     # Windows
 ```
 
-3. **Instale as dependências**
+3. **Install dependencies**
 ```bash
 pip install -r requirements.txt
 ```
 
-4. **Execute o app**
+4. **Verify the model exists**
 ```bash
-streamlit run app.py
+ls model/meu_modelo_lstm.keras
 ```
 
-### 📦 **Dependências Principais**
-```
-streamlit>=1.28.0
-tensorflow>=2.15.0
-pandas>=2.0.0
-numpy>=1.24.0
-plotly>=5.15.0
-scikit-learn>=1.3.0
-streamlit-option-menu>=0.3.6
-requests>=2.25.0
+## 💻 Local Usage
+
+### Run the server
+
+```bash
+uvicorn main:app --reload
 ```
 
-## 💻 Uso
+The API will be available at:
+- **API**: http://localhost:8000
+- **Swagger Documentation**: http://localhost:8000/docs
+- **ReDoc Documentation**: http://localhost:8000/redoc
 
-### 🌐 **Acesso Web**
-O app está disponível em: **http://localhost:8501**
+### Run with custom settings
 
-### 📱 **Funcionalidades**
+```bash
+uvicorn main:app --host 0.0.0.0 --port 8000 --workers 4
+```
 
-#### **Visualização**
-- Navegue pelas seções usando o menu lateral
-- Interaja com gráficos usando zoom e pan
-- Explore diferentes visualizações dos dados
+## 🚀 Deploy on Render
 
-#### **Previsões**
-- **Manual**: Ajuste os sliders de pressão
-- **Lote**: Faça upload de um arquivo CSV
-- **Exemplo**: Use dados pré-carregados
+### Automatic Configuration
 
-#### **Análise**
-- Visualize métricas de performance
-- Analise o histórico de treinamento
-- Compare predições com valores reais
+The project is already configured with `render.yaml`. Follow these steps:
 
-### 📊 **Formatos Suportados**
-- **Input**: CSV com colunas de pressão
-- **Output**: Predições em tempo real
-- **Visualização**: Gráficos interativos Plotly
+1. **Create a Render account** (if you don't have one)
+   - Visit: https://render.com
 
-## 📊 Resultados
+2. **Connect the repository**
+   - In the Render dashboard, click "New +"
+   - Select "Blueprint"
+   - Connect your GitHub repository
 
-### 🎯 **Performance do Modelo**
-- **Precisão**: 93.4% de variância explicada (R²)
-- **Erro**: RMSE de 0.020 kg/s
-- **Estabilidade**: Convergência suave em 50 épocas
-- **Generalização**: Boa performance em dados não vistos
+3. **Render automatically detects `render.yaml`**
+   - Render will read the `render.yaml` file and configure the service automatically
 
-### 📈 **Insights Técnicos**
-- **Sensibilidade**: Modelo responde bem a mudanças de pressão
-- **Temporal**: LSTM captura dependências temporais
-- **Robustez**: Performance consistente em diferentes condições
-- **Escalabilidade**: Arquitetura otimizada para deploy
+4. **Wait for deployment**
+   - Render will build and deploy automatically
+   - The API URL will be provided after deployment
 
-### 🔬 **Validação**
-- **Split**: 80/20 treino/teste estratificado
-- **Cross-validation**: Validação cruzada temporal
-- **Métricas**: Múltiplas métricas de avaliação
-- **Visualização**: Análise gráfica de resíduos
+### Manual Configuration (Alternative)
 
-## 🤝 Contribuição
+If you prefer to configure manually:
 
-### 🛠️ **Como Contribuir**
-1. Fork o projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. Push para a branch (`git push origin feature/AmazingFeature`)
-5. Abra um Pull Request
+1. **Create a new Web Service**
+   - In the dashboard, click "New +" → "Web Service"
 
-### 📋 **Áreas de Melhoria**
-- **Novos Modelos**: Implementação de outras arquiteturas (GRU, Transformer)
-- **Features**: Adição de novas variáveis de entrada
-- **Interface**: Melhorias na UX/UI
-- **Performance**: Otimizações de velocidade
-- **Documentação**: Expansão da documentação técnica
+2. **Connect the repository**
 
-### 🐛 **Reportar Bugs**
-- Use o sistema de Issues do GitHub
-- Inclua informações detalhadas sobre o erro
-- Adicione screenshots quando relevante
-- Especifique o ambiente (OS, Python version, etc.)
+3. **Configure the service:**
+   - **Name**: `virtual-flow-forecasting-api`
+   - **Environment**: `Python 3`
+   - **Build Command**: `pip install -r requirements.txt`
+   - **Start Command**: `uvicorn main:app --host 0.0.0.0 --port $PORT`
 
-## 📄 Licença
+4. **Wait for deployment**
 
-Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE](LICENSE) para detalhes.
+### Environment Variables
 
-### 📜 **Resumo da Licença**
-- ✅ Uso comercial permitido
-- ✅ Modificação permitida
-- ✅ Distribuição permitida
-- ✅ Uso privado permitido
-- ❌ Sem garantia
-- ❌ Sem responsabilidade
+No environment variables are required for basic operation. The model will be loaded from the local file.
 
-## 📞 Contato
+## 📝 Usage Examples
 
-**Desenvolvedor**: Sidnei Almeida  
-**Projeto**: Virtual Flow Forecasting  
-**Tecnologias**: Python, TensorFlow, Streamlit, LSTM  
+### Python (requests)
+
+```python
+import requests
+
+# API URL (adjust to your Render URL or localhost)
+API_URL = "http://localhost:8000"
+
+# Health check
+response = requests.get(f"{API_URL}/health")
+print(response.json())
+
+# Single prediction
+prediction_data = {
+    "pressure_1": 0.7761,
+    "pressure_2": 0.7281,
+    "pressure_3": 0.7361,
+    "pressure_4": 0.7560,
+    "pressure_5": 0.7811,
+    "pressure_6": 0.7690,
+    "pressure_7": 0.1330
+}
+
+response = requests.post(f"{API_URL}/predict", json=prediction_data)
+result = response.json()
+print(f"Predicted flow rate: {result['predicted_flow_rate']}")
+
+# Batch prediction
+batch_data = {
+    "pressures": [
+        [0.7761, 0.7281, 0.7361, 0.7560, 0.7811, 0.7690, 0.1330],
+        [0.7672, 0.7715, 0.7730, 0.7897, 0.8148, 0.8199, 0.4696],
+        [0.7668, 0.7795, 0.7914, 0.8187, 0.8540, 0.8850, 0.6661]
+    ]
+}
+
+response = requests.post(f"{API_URL}/predict/batch", json=batch_data)
+results = response.json()
+print(f"Predictions: {results['predictions']}")
+```
+
+### cURL
+
+```bash
+# Health check
+curl http://localhost:8000/health
+
+# Single prediction
+curl -X POST "http://localhost:8000/predict" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "pressure_1": 0.7761,
+    "pressure_2": 0.7281,
+    "pressure_3": 0.7361,
+    "pressure_4": 0.7560,
+    "pressure_5": 0.7811,
+    "pressure_6": 0.7690,
+    "pressure_7": 0.1330
+  }'
+
+# Batch prediction
+curl -X POST "http://localhost:8000/predict/batch" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "pressures": [
+      [0.7761, 0.7281, 0.7361, 0.7560, 0.7811, 0.7690, 0.1330],
+      [0.7672, 0.7715, 0.7730, 0.7897, 0.8148, 0.8199, 0.4696]
+    ]
+  }'
+
+# Model information
+curl http://localhost:8000/model/info
+
+# Model metrics
+curl http://localhost:8000/model/metrics
+```
+
+### JavaScript (fetch)
+
+```javascript
+// Single prediction
+const predictionData = {
+  pressure_1: 0.7761,
+  pressure_2: 0.7281,
+  pressure_3: 0.7361,
+  pressure_4: 0.7560,
+  pressure_5: 0.7811,
+  pressure_6: 0.7690,
+  pressure_7: 0.1330
+};
+
+fetch('http://localhost:8000/predict', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify(predictionData)
+})
+  .then(response => response.json())
+  .then(data => {
+    console.log('Predicted flow rate:', data.predicted_flow_rate);
+  })
+  .catch(error => {
+    console.error('Error:', error);
+  });
+```
+
+## 📚 API Documentation
+
+The API has interactive documentation available at:
+
+- **Swagger UI**: `http://localhost:8000/docs`
+  - Interactive interface where you can test all endpoints
+  - Shows schemas, examples and allows direct requests
+
+- **ReDoc**: `http://localhost:8000/redoc`
+  - Alternative documentation with clean and organized visualization
+
+## 🤖 LSTM Model
+
+### Architecture
+- **Input**: 7 normalized pressure features (0-1)
+- **LSTM Layer**: 50 units
+- **Dense Layer**: 1 neuron (output)
+- **Output**: Predicted liquid flow rate (normalized)
+
+### Performance
+- **R² Score**: 0.934 (93.4% variance explained)
+- **RMSE**: 0.020
+- **MAE**: 0.009
+
+### Data Format
+- **Input**: Normalized values between 0 and 1
+- **Output**: Normalized value between 0 and 1
+- To denormalize values, you need to use the MinMaxScaler parameters used in training
+
+## ⚠️ Important Notes
+
+1. **Normalization**: All pressure values must be normalized in range [0, 1]. If you have raw values, you need to normalize them before sending to the API.
+
+2. **Local Model**: The model is loaded from the `model/meu_modelo_lstm.keras` file. Make sure this file exists before deploying.
+
+3. **Performance**: The model is loaded once on application initialization. Subsequent predictions are fast.
+
+4. **CORS**: The API has CORS enabled for all domains. In production, consider restricting to allowed domains.
+
+## 🐛 Troubleshooting
+
+### Error: "Model not found"
+- Check if the `model/meu_modelo_lstm.keras` file exists
+- Make sure the path is correct
+
+### Error: "Pressure values must be in range [0, 1]"
+- Normalize your data before sending to the API
+- Values must be between 0.0 and 1.0
+
+### Render Error: "Build failed"
+- Check the logs in the Render dashboard
+- Make sure all dependencies are in `requirements.txt`
+- Verify Python 3.11 is available on Render
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 📞 Contact
+
+**Developer**: Sidnei Almeida  
+**Project**: Virtual Flow Forecasting API  
+**Technologies**: Python, FastAPI, TensorFlow, LSTM
 
 ---
 
 <div align="center">
 
-### 🌊 **Virtual Flow Forecasting**
-*Previsão Inteligente de Vazão Multifásica*
+### 🌊 **Virtual Flow Forecasting API**
+*Intelligent Multiphase Flow Rate Prediction*
 
-[![GitHub](https://img.shields.io/badge/GitHub-Repository-black?logo=github)](https://github.com/sidnei-almeida/virtual_flow_forecasting)
-[![Streamlit](https://img.shields.io/badge/Streamlit-App-red?logo=streamlit)](https://virtual-flow-forecasting.streamlit.app)
-
-**⭐ Se este projeto foi útil, considere dar uma estrela! ⭐**
+⭐ If this project was useful, consider giving it a star! ⭐
 
 </div>
