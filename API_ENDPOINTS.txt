@@ -1,0 +1,498 @@
+================================================================================
+VIRTUAL FLOW FORECASTING API - ENDPOINTS DOCUMENTATION
+================================================================================
+For Frontend Team - Integration Guide
+================================================================================
+
+BASE URL: 
+  Production: [Will be provided after Render deployment]
+  Local Development: http://localhost:8000
+
+API VERSION: 1.0.0
+
+================================================================================
+1. ROOT ENDPOINT
+================================================================================
+
+GET /
+
+Description: Returns basic API information
+
+Request:
+  Method: GET
+  Headers: None required
+  
+Response:
+  Status: 200 OK
+  Body:
+    {
+      "message": "Virtual Flow Forecasting API",
+      "version": "1.0.0",
+      "docs": "/docs",
+      "health": "/health"
+    }
+
+Example cURL:
+  curl http://localhost:8000/
+
+
+================================================================================
+2. HEALTH CHECK
+================================================================================
+
+GET /health
+
+Description: Checks API status and verifies if the model is loaded
+
+Request:
+  Method: GET
+  Headers: None required
+  
+Response (Healthy):
+  Status: 200 OK
+  Body:
+    {
+      "status": "healthy",
+      "model_loaded": true,
+      "message": "API and model working correctly"
+    }
+
+Response (Unhealthy):
+  Status: 200 OK (still returns 200, check status field)
+  Body:
+    {
+      "status": "unhealthy",
+      "model_loaded": false,
+      "error": "Error message here"
+    }
+
+Example cURL:
+  curl http://localhost:8000/health
+
+Frontend Usage:
+  - Call this endpoint on app startup to verify API is ready
+  - Check "model_loaded" field before allowing predictions
+
+
+================================================================================
+3. SINGLE PREDICTION
+================================================================================
+
+POST /predict
+
+Description: Makes a single liquid flow rate prediction using 7 pressure values
+
+Request:
+  Method: POST
+  Headers:
+    Content-Type: application/json
+  Body:
+    {
+      "pressure_1": 0.7761,  // Float, range: 0.0 to 1.0 (normalized)
+      "pressure_2": 0.7281,  // Float, range: 0.0 to 1.0 (normalized)
+      "pressure_3": 0.7361,  // Float, range: 0.0 to 1.0 (normalized)
+      "pressure_4": 0.7560,  // Float, range: 0.0 to 1.0 (normalized)
+      "pressure_5": 0.7811,  // Float, range: 0.0 to 1.0 (normalized)
+      "pressure_6": 0.7690,  // Float, range: 0.0 to 1.0 (normalized)
+      "pressure_7": 0.1330   // Float, range: 0.0 to 1.0 (normalized)
+    }
+
+Response (Success):
+  Status: 200 OK
+  Body:
+    {
+      "predicted_flow_rate": 0.325634,  // Float (normalized value)
+      "input_pressures": [0.7761, 0.7281, 0.7361, 0.7560, 0.7811, 0.7690, 0.1330]
+    }
+
+Response (Validation Error):
+  Status: 400 Bad Request
+  Body:
+    {
+      "detail": "Sample 0: expected 7 pressure values, got 6"
+      // OR
+      "detail": "Pressure values must be in range [0, 1] (normalized)"
+    }
+
+Response (Server Error):
+  Status: 500 Internal Server Error
+  Body:
+    {
+      "detail": "Internal error: [error message]"
+    }
+
+Example cURL:
+  curl -X POST "http://localhost:8000/predict" \
+    -H "Content-Type: application/json" \
+    -d '{
+      "pressure_1": 0.7761,
+      "pressure_2": 0.7281,
+      "pressure_3": 0.7361,
+      "pressure_4": 0.7560,
+      "pressure_5": 0.7811,
+      "pressure_6": 0.7690,
+      "pressure_7": 0.1330
+    }'
+
+Example JavaScript:
+  const response = await fetch('http://localhost:8000/predict', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      pressure_1: 0.7761,
+      pressure_2: 0.7281,
+      pressure_3: 0.7361,
+      pressure_4: 0.7560,
+      pressure_5: 0.7811,
+      pressure_6: 0.7690,
+      pressure_7: 0.1330
+    })
+  });
+  
+  const data = await response.json();
+  console.log('Predicted flow rate:', data.predicted_flow_rate);
+
+Validation Rules:
+  - All 7 pressure fields are REQUIRED
+  - All values must be floats between 0.0 and 1.0 (inclusive)
+  - Values outside this range will return 400 Bad Request
+
+
+================================================================================
+4. BATCH PREDICTIONS
+================================================================================
+
+POST /predict/batch
+
+Description: Makes multiple predictions in a single request (more efficient)
+
+Request:
+  Method: POST
+  Headers:
+    Content-Type: application/json
+  Body:
+    {
+      "pressures": [
+        [0.7761, 0.7281, 0.7361, 0.7560, 0.7811, 0.7690, 0.1330],  // Sample 1
+        [0.7672, 0.7715, 0.7730, 0.7897, 0.8148, 0.8199, 0.4696],  // Sample 2
+        [0.7668, 0.7795, 0.7914, 0.8187, 0.8540, 0.8850, 0.6661]   // Sample 3
+        // ... more samples
+      ]
+    }
+
+Response (Success):
+  Status: 200 OK
+  Body:
+    {
+      "predictions": [0.325634, 0.434126, 0.380096],  // Array of floats
+      "count": 3  // Number of predictions made
+    }
+
+Response (Validation Error):
+  Status: 400 Bad Request
+  Body:
+    {
+      "detail": "Sample 2: expected 7 pressure values, got 6"
+      // OR
+      "detail": "Sample 1, pressure 3: value 1.5 out of range [0, 1]"
+    }
+
+Example cURL:
+  curl -X POST "http://localhost:8000/predict/batch" \
+    -H "Content-Type: application/json" \
+    -d '{
+      "pressures": [
+        [0.7761, 0.7281, 0.7361, 0.7560, 0.7811, 0.7690, 0.1330],
+        [0.7672, 0.7715, 0.7730, 0.7897, 0.8148, 0.8199, 0.4696]
+      ]
+    }'
+
+Example JavaScript:
+  const response = await fetch('http://localhost:8000/predict/batch', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      pressures: [
+        [0.7761, 0.7281, 0.7361, 0.7560, 0.7811, 0.7690, 0.1330],
+        [0.7672, 0.7715, 0.7730, 0.7897, 0.8148, 0.8199, 0.4696]
+      ]
+    })
+  });
+  
+  const data = await response.json();
+  console.log('Predictions:', data.predictions);
+  console.log('Count:', data.count);
+
+Validation Rules:
+  - "pressures" must be an array with at least 1 element
+  - Each element in "pressures" must be an array with exactly 7 values
+  - All values must be floats between 0.0 and 1.0 (inclusive)
+
+
+================================================================================
+5. MODEL INFORMATION
+================================================================================
+
+GET /model/info
+
+Description: Returns information about the LSTM model architecture
+
+Request:
+  Method: GET
+  Headers: None required
+  
+Response (Success):
+  Status: 200 OK
+  Body:
+    {
+      "architecture": "LSTM(50) + Dense(1)",
+      "parameters": 11651,
+      "input_shape": "(1, 1, 7)",
+      "output_shape": "(1,)",
+      "features": [
+        "pressure_1",
+        "pressure_2",
+        "pressure_3",
+        "pressure_4",
+        "pressure_5",
+        "pressure_6",
+        "pressure_7"
+      ]
+    }
+
+Response (Error):
+  Status: 500 Internal Server Error
+  Body:
+    {
+      "detail": "Internal error: [error message]"
+    }
+
+Example cURL:
+  curl http://localhost:8000/model/info
+
+Example JavaScript:
+  const response = await fetch('http://localhost:8000/model/info');
+  const data = await response.json();
+  console.log('Model architecture:', data.architecture);
+  console.log('Parameters:', data.parameters);
+
+Frontend Usage:
+  - Useful for displaying model information in UI
+  - Can show model architecture, parameter count, etc.
+
+
+================================================================================
+6. MODEL METRICS
+================================================================================
+
+GET /model/metrics
+
+Description: Returns model evaluation metrics (performance indicators)
+
+Request:
+  Method: GET
+  Headers: None required
+  
+Response (Success):
+  Status: 200 OK
+  Body:
+    {
+      "mse": 0.000397,   // Mean Squared Error
+      "rmse": 0.019931,  // Root Mean Squared Error
+      "mae": 0.008890,   // Mean Absolute Error
+      "r2": 0.933903     // R² Score (coefficient of determination)
+    }
+
+Response (Not Found):
+  Status: 404 Not Found
+  Body:
+    {
+      "detail": "Metrics file not found"
+    }
+
+Response (Error):
+  Status: 500 Internal Server Error
+  Body:
+    {
+      "detail": "Internal error: [error message]"
+    }
+
+Example cURL:
+  curl http://localhost:8000/model/metrics
+
+Example JavaScript:
+  const response = await fetch('http://localhost:8000/model/metrics');
+  const data = await response.json();
+  console.log('R² Score:', data.r2);
+  console.log('RMSE:', data.rmse);
+
+Metrics Explanation:
+  - MSE: Lower is better (measures average squared error)
+  - RMSE: Lower is better (standard deviation of prediction errors)
+  - MAE: Lower is better (average absolute error)
+  - R²: Higher is better (0.93 = model explains 93% of variance)
+    - Range: -∞ to 1.0
+    - 1.0 = perfect predictions
+    - 0.0 = model performs as well as just predicting the mean
+    - Negative = model performs worse than predicting the mean
+
+Frontend Usage:
+  - Display model performance metrics
+  - Show model accuracy/quality indicators
+
+
+================================================================================
+ERROR HANDLING
+================================================================================
+
+HTTP Status Codes:
+  - 200 OK: Request successful
+  - 400 Bad Request: Validation error (check request format/values)
+  - 404 Not Found: Resource not found (e.g., metrics file)
+  - 500 Internal Server Error: Server-side error (check logs)
+
+Error Response Format:
+  {
+    "detail": "Error message description"
+  }
+
+Common Errors:
+  1. Missing required fields:
+     Status: 422 Unprocessable Entity
+     Detail: "Field required: pressure_1"
+
+  2. Invalid value range:
+     Status: 400 Bad Request
+     Detail: "Pressure values must be in range [0, 1] (normalized)"
+
+  3. Wrong number of values:
+     Status: 400 Bad Request
+     Detail: "Sample 0: expected 7 pressure values, got 6"
+
+  4. Model not loaded:
+     Status: 500 Internal Server Error
+     Detail: "Internal error: Model not found at ..."
+
+
+================================================================================
+DATA NORMALIZATION
+================================================================================
+
+IMPORTANT: All pressure values must be normalized to range [0.0, 1.0]
+
+If your frontend receives raw pressure values (e.g., in bar, psi, etc.),
+you MUST normalize them before sending to the API.
+
+Normalization formula:
+  normalized_value = (raw_value - min_value) / (max_value - min_value)
+
+Example:
+  If pressure range is 45-75 bar:
+    min_value = 45
+    max_value = 75
+    raw_pressure = 60 bar
+    normalized = (60 - 45) / (75 - 45) = 15 / 30 = 0.5
+
+The API will validate that all values are in [0.0, 1.0] range.
+Values outside this range will be rejected with 400 Bad Request.
+
+The predicted flow_rate in the response is also normalized [0.0, 1.0].
+You may need to denormalize it using your scaling parameters.
+
+
+================================================================================
+CORS (Cross-Origin Resource Sharing)
+================================================================================
+
+The API has CORS enabled for all origins by default.
+
+This means:
+  - Any frontend domain can make requests to the API
+  - No special headers required for CORS
+  - Works with all browsers
+
+In production, you may want to restrict CORS to specific domains.
+Currently configured for development/testing purposes.
+
+
+================================================================================
+INTERACTIVE API DOCUMENTATION
+================================================================================
+
+Swagger UI (Interactive):
+  URL: http://localhost:8000/docs
+  - Test all endpoints directly from browser
+  - See request/response schemas
+  - Try different parameters
+
+ReDoc (Alternative Documentation):
+  URL: http://localhost:8000/redoc
+  - Clean, organized documentation view
+  - Same information as Swagger, different format
+
+
+================================================================================
+EXAMPLE INTEGRATION FLOW
+================================================================================
+
+1. Check API Health:
+   GET /health
+   → Verify "status": "healthy" and "model_loaded": true
+
+2. Get Model Information (optional):
+   GET /model/info
+   → Display model architecture to user
+
+3. Get Model Metrics (optional):
+   GET /model/metrics
+   → Show model performance indicators
+
+4. Make Predictions:
+   For single prediction:
+     POST /predict
+     → Use response.predicted_flow_rate
+   
+   For multiple predictions:
+     POST /predict/batch
+     → Use response.predictions array
+
+
+================================================================================
+QUICK REFERENCE
+================================================================================
+
+Endpoint                Method    Purpose
+--------                ------    -------
+/                       GET       API info
+/health                 GET       Health check
+/predict                POST      Single prediction
+/predict/batch          POST      Batch predictions
+/model/info             GET       Model architecture
+/model/metrics          GET       Model performance
+
+
+================================================================================
+NOTES FOR FRONTEND TEAM
+================================================================================
+
+1. Always check /health endpoint on app startup
+2. All pressure values must be normalized [0.0, 1.0]
+3. All 7 pressure fields are required for /predict
+4. Use /predict/batch for multiple predictions (more efficient)
+5. Predicted flow_rate is also normalized [0.0, 1.0]
+6. Error responses always have "detail" field with message
+7. Use Swagger UI at /docs for testing during development
+8. CORS is enabled, no special configuration needed
+
+Contact:
+  For questions or issues, check the main README.md or contact the backend team.
+
+
+================================================================================
+END OF DOCUMENTATION
+================================================================================
+

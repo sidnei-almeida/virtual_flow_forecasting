@@ -1,43 +1,215 @@
+<div align="center">
+
 # 🌊 Virtual Flow Forecasting API
 
-REST API for liquid flow rate prediction using LSTM Deep Learning model.
+**REST API for Intelligent Multiphase Flow Rate Prediction using LSTM Deep Learning**
 
-## 📋 Table of Contents
+[![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![TensorFlow](https://img.shields.io/badge/TensorFlow-FF6F00?style=for-the-badge&logo=tensorflow&logoColor=white)](https://tensorflow.org)
+[![License](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](LICENSE)
+
+*Production-ready REST API for predicting liquid flow rates in industrial pipe systems*
+
+[Features](#-features) • [Quick Start](#-quick-start) • [API Documentation](#-api-documentation) • [Deployment](#-deployment) • [Examples](#-examples)
+
+</div>
+
+---
+
+## 📑 Table of Contents
 
 - [Overview](#-overview)
 - [Features](#-features)
-- [Endpoints](#-endpoints)
+- [Architecture](#-architecture)
+- [Quick Start](#-quick-start)
 - [Installation](#-installation)
-- [Local Usage](#-local-usage)
-- [Deploy on Render](#-deploy-on-render)
-- [Usage Examples](#-usage-examples)
 - [API Documentation](#-api-documentation)
+- [Endpoints](#-endpoints)
+- [Examples](#-examples)
+- [Deployment](#-deployment)
+- [Model Information](#-model-information)
+- [Contributing](#-contributing)
+- [License](#-license)
+
+---
 
 ## 🎯 Overview
 
-This API provides REST endpoints for predicting liquid flow rate in industrial pipe systems using a trained LSTM (Long Short-Term Memory) model. The model uses 7 normalized pressure features (0-1) to predict liquid flow rate.
+**Virtual Flow Forecasting API** is a production-ready REST API that leverages advanced LSTM (Long Short-Term Memory) neural networks to predict liquid flow rates in industrial pipe systems. The API processes 7 normalized pressure sensor readings and returns accurate flow rate predictions in real-time.
 
-### 🎯 Objectives
+### Key Highlights
 
-- **RESTful API**: Simple and standardized interface for predictions
-- **High Performance**: Single model loading on initialization
-- **Easy Deploy**: Ready-to-deploy configuration for Render
-- **Auto Documentation**: Integrated Swagger UI
+- 🚀 **Production-Ready**: Built with FastAPI for high performance and reliability
+- 🤖 **Deep Learning**: Powered by TensorFlow/Keras LSTM model (93.4% R² score)
+- 📊 **RESTful Design**: Clean, standardized API endpoints following REST principles
+- 🔄 **Batch Processing**: Efficient batch prediction endpoint for multiple samples
+- 📚 **Auto Documentation**: Interactive Swagger UI and ReDoc included
+- 🌐 **CORS Enabled**: Ready for frontend integration out of the box
+
+---
 
 ## ✨ Features
 
-- ✅ **Single Prediction**: Endpoint for a single prediction
-- ✅ **Batch Prediction**: Endpoint for multiple simultaneous predictions
-- ✅ **Health Check**: Monitor API and model status
-- ✅ **Model Information**: Endpoint to query architecture and parameters
-- ✅ **Metrics**: Access to model evaluation metrics
-- ✅ **Data Validation**: Automatic input validation with Pydantic
-- ✅ **CORS Enabled**: Ready for frontend integration
-- ✅ **Interactive Documentation**: Swagger UI and ReDoc
+### Core Functionality
 
-## 🚀 Endpoints
+| Feature | Description |
+|---------|-------------|
+| **Single Prediction** | Real-time prediction endpoint for individual flow rate forecasts |
+| **Batch Prediction** | Efficient bulk processing for multiple samples in one request |
+| **Health Monitoring** | Built-in health check endpoint for system status verification |
+| **Model Information** | Detailed model architecture and parameter information |
+| **Performance Metrics** | Access to evaluation metrics (MSE, RMSE, MAE, R²) |
 
-### GET `/`
+### Technical Features
+
+- ✅ **Input Validation**: Automatic validation using Pydantic models
+- ✅ **Error Handling**: Comprehensive error responses with detailed messages
+- ✅ **Model Caching**: Singleton pattern for efficient model loading
+- ✅ **Type Safety**: Full type hints and Pydantic schema validation
+- ✅ **Async Support**: Built on FastAPI's async framework
+- ✅ **Interactive Docs**: Swagger UI and ReDoc for easy testing
+
+---
+
+## 🏗️ Architecture
+
+### System Architecture
+
+```
+┌─────────────────┐
+│   Frontend      │
+│   (Client)      │
+└────────┬────────┘
+         │ HTTP/REST
+         ▼
+┌─────────────────┐
+│   FastAPI       │
+│   (main.py)     │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│  Model Loader   │
+│ (model_loader)  │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│   LSTM Model    │
+│  (TensorFlow)   │
+└─────────────────┘
+```
+
+### Model Architecture
+
+```
+Input Layer:    7 pressure features (normalized 0-1)
+        ↓
+LSTM Layer:     50 units
+        ↓
+Dense Layer:    1 unit (output)
+        ↓
+Output:         Liquid flow rate (normalized 0-1)
+```
+
+### Tech Stack
+
+- **Framework**: FastAPI 0.104+
+- **ML Framework**: TensorFlow 2.13+
+- **Validation**: Pydantic 2.0+
+- **Server**: Uvicorn
+- **Language**: Python 3.11+
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Python 3.11 or higher
+- pip package manager
+
+### Installation Steps
+
+<details>
+<summary><b>1. Clone the Repository</b></summary>
+
+```bash
+git clone https://github.com/sidnei-almeida/virtual_flow_forecasting.git
+cd virtual_flow_forecasting
+```
+</details>
+
+<details>
+<summary><b>2. Create Virtual Environment</b></summary>
+
+```bash
+# Linux/Mac
+python -m venv venv
+source venv/bin/activate
+
+# Windows
+python -m venv venv
+venv\Scripts\activate
+```
+</details>
+
+<details>
+<summary><b>3. Install Dependencies</b></summary>
+
+```bash
+pip install -r requirements.txt
+```
+</details>
+
+<details>
+<summary><b>4. Verify Model File</b></summary>
+
+```bash
+ls model/meu_modelo_lstm.keras
+```
+</details>
+
+<details>
+<summary><b>5. Run the API</b></summary>
+
+```bash
+uvicorn main:app --reload
+```
+
+The API will be available at:
+- **API**: http://localhost:8000
+- **Swagger UI**: http://localhost:8000/docs
+- **ReDoc**: http://localhost:8000/redoc
+</details>
+
+---
+
+## 📚 API Documentation
+
+### Base URL
+
+```
+Production:  [Provided after Render deployment]
+Development: http://localhost:8000
+```
+
+### Interactive Documentation
+
+- **Swagger UI**: `/docs` - Interactive API explorer
+- **ReDoc**: `/redoc` - Alternative documentation format
+
+---
+
+## 🔌 Endpoints
+
+### Root Endpoint
+
+```http
+GET /
+```
+
 Returns basic API information.
 
 **Response:**
@@ -50,8 +222,15 @@ Returns basic API information.
 }
 ```
 
-### GET `/health`
-Checks API status and if the model is loaded.
+---
+
+### Health Check
+
+```http
+GET /health
+```
+
+Verifies API status and model availability.
 
 **Response:**
 ```json
@@ -62,7 +241,14 @@ Checks API status and if the model is loaded.
 }
 ```
 
-### POST `/predict`
+---
+
+### Single Prediction
+
+```http
+POST /predict
+```
+
 Makes a single liquid flow rate prediction.
 
 **Request Body:**
@@ -87,11 +273,18 @@ Makes a single liquid flow rate prediction.
 ```
 
 **Validation:**
-- All pressure values must be in range [0.0, 1.0]
-- All 7 values are required
+- All 7 pressure fields are **required**
+- All values must be floats between **0.0 and 1.0** (inclusive)
 
-### POST `/predict/batch`
-Makes multiple batch predictions.
+---
+
+### Batch Predictions
+
+```http
+POST /predict/batch
+```
+
+Makes multiple predictions in a single request.
 
 **Request Body:**
 ```json
@@ -111,8 +304,15 @@ Makes multiple batch predictions.
 }
 ```
 
-### GET `/model/info`
-Returns information about the LSTM model.
+---
+
+### Model Information
+
+```http
+GET /model/info
+```
+
+Returns detailed information about the LSTM model.
 
 **Response:**
 ```json
@@ -128,8 +328,15 @@ Returns information about the LSTM model.
 }
 ```
 
-### GET `/model/metrics`
-Returns the model evaluation metrics.
+---
+
+### Model Metrics
+
+```http
+GET /model/metrics
+```
+
+Returns model evaluation metrics.
 
 **Response:**
 ```json
@@ -141,179 +348,69 @@ Returns the model evaluation metrics.
 }
 ```
 
-## 📦 Installation
+---
 
-### Prerequisites
-- Python 3.11+
-- pip
+## 💻 Examples
 
-### Local Setup
+### Python Example
 
-1. **Clone the repository**
-```bash
-git clone https://github.com/sidnei-almeida/virtual_flow_forecasting.git
-cd virtual_flow_forecasting
-```
-
-2. **Create a virtual environment**
-```bash
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-# or
-venv\Scripts\activate     # Windows
-```
-
-3. **Install dependencies**
-```bash
-pip install -r requirements.txt
-```
-
-4. **Verify the model exists**
-```bash
-ls model/meu_modelo_lstm.keras
-```
-
-## 💻 Local Usage
-
-### Run the server
-
-```bash
-uvicorn main:app --reload
-```
-
-The API will be available at:
-- **API**: http://localhost:8000
-- **Swagger Documentation**: http://localhost:8000/docs
-- **ReDoc Documentation**: http://localhost:8000/redoc
-
-### Run with custom settings
-
-```bash
-uvicorn main:app --host 0.0.0.0 --port 8000 --workers 4
-```
-
-## 🚀 Deploy on Render
-
-### Automatic Configuration
-
-The project is already configured with `render.yaml`. Follow these steps:
-
-1. **Create a Render account** (if you don't have one)
-   - Visit: https://render.com
-
-2. **Connect the repository**
-   - In the Render dashboard, click "New +"
-   - Select "Blueprint"
-   - Connect your GitHub repository
-
-3. **Render automatically detects `render.yaml`**
-   - Render will read the `render.yaml` file and configure the service automatically
-
-4. **Wait for deployment**
-   - Render will build and deploy automatically
-   - The API URL will be provided after deployment
-
-### Manual Configuration (Alternative)
-
-If you prefer to configure manually:
-
-1. **Create a new Web Service**
-   - In the dashboard, click "New +" → "Web Service"
-
-2. **Connect the repository**
-
-3. **Configure the service:**
-   - **Name**: `virtual-flow-forecasting-api`
-   - **Environment**: `Python 3`
-   - **Build Command**: `pip install -r requirements.txt`
-   - **Start Command**: `uvicorn main:app --host 0.0.0.0 --port $PORT`
-
-4. **Wait for deployment**
-
-### Environment Variables
-
-No environment variables are required for basic operation. The model will be loaded from the local file.
-
-## 📝 Usage Examples
-
-### Python (requests)
+<details>
+<summary><b>Single Prediction</b></summary>
 
 ```python
 import requests
 
-# API URL (adjust to your Render URL or localhost)
 API_URL = "http://localhost:8000"
 
-# Health check
-response = requests.get(f"{API_URL}/health")
-print(response.json())
+# Make a prediction
+response = requests.post(
+    f"{API_URL}/predict",
+    json={
+        "pressure_1": 0.7761,
+        "pressure_2": 0.7281,
+        "pressure_3": 0.7361,
+        "pressure_4": 0.7560,
+        "pressure_5": 0.7811,
+        "pressure_6": 0.7690,
+        "pressure_7": 0.1330
+    }
+)
 
-# Single prediction
-prediction_data = {
-    "pressure_1": 0.7761,
-    "pressure_2": 0.7281,
-    "pressure_3": 0.7361,
-    "pressure_4": 0.7560,
-    "pressure_5": 0.7811,
-    "pressure_6": 0.7690,
-    "pressure_7": 0.1330
-}
-
-response = requests.post(f"{API_URL}/predict", json=prediction_data)
 result = response.json()
 print(f"Predicted flow rate: {result['predicted_flow_rate']}")
+```
+</details>
 
-# Batch prediction
-batch_data = {
-    "pressures": [
-        [0.7761, 0.7281, 0.7361, 0.7560, 0.7811, 0.7690, 0.1330],
-        [0.7672, 0.7715, 0.7730, 0.7897, 0.8148, 0.8199, 0.4696],
-        [0.7668, 0.7795, 0.7914, 0.8187, 0.8540, 0.8850, 0.6661]
-    ]
-}
+<details>
+<summary><b>Batch Prediction</b></summary>
 
-response = requests.post(f"{API_URL}/predict/batch", json=batch_data)
+```python
+import requests
+
+API_URL = "http://localhost:8000"
+
+# Make batch predictions
+response = requests.post(
+    f"{API_URL}/predict/batch",
+    json={
+        "pressures": [
+            [0.7761, 0.7281, 0.7361, 0.7560, 0.7811, 0.7690, 0.1330],
+            [0.7672, 0.7715, 0.7730, 0.7897, 0.8148, 0.8199, 0.4696],
+            [0.7668, 0.7795, 0.7914, 0.8187, 0.8540, 0.8850, 0.6661]
+        ]
+    }
+)
+
 results = response.json()
 print(f"Predictions: {results['predictions']}")
+print(f"Count: {results['count']}")
 ```
+</details>
 
-### cURL
+### JavaScript Example
 
-```bash
-# Health check
-curl http://localhost:8000/health
-
-# Single prediction
-curl -X POST "http://localhost:8000/predict" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "pressure_1": 0.7761,
-    "pressure_2": 0.7281,
-    "pressure_3": 0.7361,
-    "pressure_4": 0.7560,
-    "pressure_5": 0.7811,
-    "pressure_6": 0.7690,
-    "pressure_7": 0.1330
-  }'
-
-# Batch prediction
-curl -X POST "http://localhost:8000/predict/batch" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "pressures": [
-      [0.7761, 0.7281, 0.7361, 0.7560, 0.7811, 0.7690, 0.1330],
-      [0.7672, 0.7715, 0.7730, 0.7897, 0.8148, 0.8199, 0.4696]
-    ]
-  }'
-
-# Model information
-curl http://localhost:8000/model/info
-
-# Model metrics
-curl http://localhost:8000/model/metrics
-```
-
-### JavaScript (fetch)
+<details>
+<summary><b>Using Fetch API</b></summary>
 
 ```javascript
 // Single prediction
@@ -342,78 +439,273 @@ fetch('http://localhost:8000/predict', {
     console.error('Error:', error);
   });
 ```
+</details>
 
-## 📚 API Documentation
+<details>
+<summary><b>Using Async/Await</b></summary>
 
-The API has interactive documentation available at:
+```javascript
+async function predictFlowRate(pressures) {
+  try {
+    const response = await fetch('http://localhost:8000/predict', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(pressures)
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    return data.predicted_flow_rate;
+  } catch (error) {
+    console.error('Prediction error:', error);
+    throw error;
+  }
+}
 
-- **Swagger UI**: `http://localhost:8000/docs`
-  - Interactive interface where you can test all endpoints
-  - Shows schemas, examples and allows direct requests
+// Usage
+const pressures = {
+  pressure_1: 0.7761,
+  pressure_2: 0.7281,
+  pressure_3: 0.7361,
+  pressure_4: 0.7560,
+  pressure_5: 0.7811,
+  pressure_6: 0.7690,
+  pressure_7: 0.1330
+};
 
-- **ReDoc**: `http://localhost:8000/redoc`
-  - Alternative documentation with clean and organized visualization
+predictFlowRate(pressures)
+  .then(flowRate => console.log('Flow rate:', flowRate))
+  .catch(error => console.error('Error:', error));
+```
+</details>
 
-## 🤖 LSTM Model
+### cURL Examples
 
-### Architecture
-- **Input**: 7 normalized pressure features (0-1)
-- **LSTM Layer**: 50 units
-- **Dense Layer**: 1 neuron (output)
-- **Output**: Predicted liquid flow rate (normalized)
+<details>
+<summary><b>Health Check</b></summary>
 
-### Performance
-- **R² Score**: 0.934 (93.4% variance explained)
-- **RMSE**: 0.020
-- **MAE**: 0.009
+```bash
+curl http://localhost:8000/health
+```
+</details>
 
-### Data Format
-- **Input**: Normalized values between 0 and 1
-- **Output**: Normalized value between 0 and 1
-- To denormalize values, you need to use the MinMaxScaler parameters used in training
+<details>
+<summary><b>Single Prediction</b></summary>
 
-## ⚠️ Important Notes
+```bash
+curl -X POST "http://localhost:8000/predict" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "pressure_1": 0.7761,
+    "pressure_2": 0.7281,
+    "pressure_3": 0.7361,
+    "pressure_4": 0.7560,
+    "pressure_5": 0.7811,
+    "pressure_6": 0.7690,
+    "pressure_7": 0.1330
+  }'
+```
+</details>
 
-1. **Normalization**: All pressure values must be normalized in range [0, 1]. If you have raw values, you need to normalize them before sending to the API.
+---
 
-2. **Local Model**: The model is loaded from the `model/meu_modelo_lstm.keras` file. Make sure this file exists before deploying.
+## 🚀 Deployment
 
-3. **Performance**: The model is loaded once on application initialization. Subsequent predictions are fast.
+### Deploy on Render
 
-4. **CORS**: The API has CORS enabled for all domains. In production, consider restricting to allowed domains.
+The project includes a `render.yaml` configuration file for automatic deployment.
 
-## 🐛 Troubleshooting
+#### Automatic Setup
 
-### Error: "Model not found"
-- Check if the `model/meu_modelo_lstm.keras` file exists
-- Make sure the path is correct
+1. **Create Render Account**
+   - Visit [render.com](https://render.com)
+   - Sign up or log in
 
-### Error: "Pressure values must be in range [0, 1]"
-- Normalize your data before sending to the API
-- Values must be between 0.0 and 1.0
+2. **Connect Repository**
+   - Click "New +" → "Blueprint"
+   - Connect your GitHub repository
 
-### Render Error: "Build failed"
-- Check the logs in the Render dashboard
-- Make sure all dependencies are in `requirements.txt`
-- Verify Python 3.11 is available on Render
+3. **Automatic Configuration**
+   - Render detects `render.yaml` automatically
+   - Service configuration is applied
+
+4. **Deploy**
+   - Render builds and deploys automatically
+   - API URL is provided after deployment
+
+#### Manual Configuration
+
+If you prefer manual setup:
+
+| Setting | Value |
+|---------|-------|
+| **Name** | `virtual-flow-forecasting-api` |
+| **Environment** | `Python 3` |
+| **Build Command** | `pip install -r requirements.txt` |
+| **Start Command** | `uvicorn main:app --host 0.0.0.0 --port $PORT` |
+
+---
+
+## 🤖 Model Information
+
+### Architecture Details
+
+| Component | Specification |
+|-----------|--------------|
+| **Model Type** | LSTM Neural Network |
+| **Input Features** | 7 normalized pressure values (0-1) |
+| **LSTM Units** | 50 |
+| **Output** | 1 (liquid flow rate, normalized) |
+| **Total Parameters** | 11,651 |
+| **Training Epochs** | 50 |
+| **Batch Size** | 72 |
+| **Optimizer** | Adam |
+| **Loss Function** | Mean Squared Error |
+
+### Performance Metrics
+
+| Metric | Value | Interpretation |
+|--------|-------|----------------|
+| **R² Score** | 0.934 | 93.4% variance explained |
+| **RMSE** | 0.020 | Root mean squared error |
+| **MAE** | 0.009 | Mean absolute error |
+| **MSE** | 0.000397 | Mean squared error |
+
+### Data Normalization
+
+⚠️ **Important**: All pressure values must be normalized to range **[0.0, 1.0]**
+
+If you have raw pressure values, normalize them using:
+
+```
+normalized_value = (raw_value - min_value) / (max_value - min_value)
+```
+
+The predicted flow rate is also normalized and may need denormalization using your scaling parameters.
+
+---
+
+## 🔧 Error Handling
+
+### HTTP Status Codes
+
+| Code | Meaning | Description |
+|------|---------|-------------|
+| `200` | OK | Request successful |
+| `400` | Bad Request | Validation error (check input format/values) |
+| `404` | Not Found | Resource not found |
+| `500` | Internal Server Error | Server-side error |
+
+### Error Response Format
+
+```json
+{
+  "detail": "Error message description"
+}
+```
+
+### Common Errors
+
+| Error | Status | Solution |
+|-------|--------|----------|
+| Missing required field | `422` | Include all 7 pressure fields |
+| Invalid value range | `400` | Ensure values are between 0.0 and 1.0 |
+| Wrong number of values | `400` | Each sample must have exactly 7 values |
+| Model not loaded | `500` | Check server logs, verify model file exists |
+
+---
+
+## 📁 Project Structure
+
+```
+virtual_flow_forecasting/
+├── main.py                 # FastAPI application
+├── model_loader.py         # Model loading module
+├── requirements.txt        # Python dependencies
+├── render.yaml            # Render deployment config
+├── runtime.txt            # Python version
+├── API_ENDPOINTS.txt      # Frontend documentation
+├── README.md              # This file
+│
+├── model/
+│   ├── meu_modelo_lstm.keras      # Trained LSTM model
+│   ├── model_metrics.json         # Evaluation metrics
+│   └── training_history.json      # Training history
+│
+├── data/
+│   ├── train_data_scaled_manual.csv
+│   ├── test_data_scaled_manual.csv
+│   └── riser_pq_uni.csv
+│
+└── notebooks/
+    ├── 1. Data Pre-Processing.ipynb
+    └── 2. LSTM Model Training.ipynb
+```
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these steps:
+
+1. **Fork the repository**
+2. **Create a feature branch** (`git checkout -b feature/AmazingFeature`)
+3. **Commit your changes** (`git commit -m 'Add some AmazingFeature'`)
+4. **Push to the branch** (`git push origin feature/AmazingFeature`)
+5. **Open a Pull Request**
+
+### Development Guidelines
+
+- Follow PEP 8 style guidelines
+- Add type hints to all functions
+- Include docstrings for all public functions
+- Write tests for new features
+- Update documentation as needed
+
+---
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
 
-## 📞 Contact
+### License Summary
+
+- ✅ Commercial use allowed
+- ✅ Modification allowed
+- ✅ Distribution allowed
+- ✅ Private use allowed
+- ❌ No warranty provided
+- ❌ No liability assumed
+
+---
+
+## 📞 Contact & Support
 
 **Developer**: Sidnei Almeida  
 **Project**: Virtual Flow Forecasting API  
 **Technologies**: Python, FastAPI, TensorFlow, LSTM
 
+### Resources
+
+- **API Documentation**: `/docs` (Swagger UI) or `/redoc` (ReDoc)
+- **Frontend Guide**: See `API_ENDPOINTS.txt`
+- **Issues**: Use GitHub Issues for bug reports
+- **Questions**: Contact the development team
+
 ---
 
 <div align="center">
 
-### 🌊 **Virtual Flow Forecasting API**
-*Intelligent Multiphase Flow Rate Prediction*
+### ⭐ If this project was useful, consider giving it a star! ⭐
 
-⭐ If this project was useful, consider giving it a star! ⭐
+**Built with ❤️ using FastAPI and TensorFlow**
+
+[![GitHub stars](https://img.shields.io/github/stars/sidnei-almeida/virtual_flow_forecasting?style=social)](https://github.com/sidnei-almeida/virtual_flow_forecasting/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/sidnei-almeida/virtual_flow_forecasting?style=social)](https://github.com/sidnei-almeida/virtual_flow_forecasting/network/members)
 
 </div>

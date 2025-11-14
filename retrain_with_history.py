@@ -1,57 +1,65 @@
 #!/usr/bin/env python3
 """
-Script para retreinar o modelo LSTM e salvar o histórico de perda
+Script to retrain the LSTM model and save training history
 """
 
 import pandas as pd
 import numpy as np
 import json
 import os
+
+# Force TensorFlow to use CPU only (disable GPU/CUDA)
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+
+import tensorflow as tf
+# Configure TensorFlow to use CPU only
+tf.config.set_visible_devices([], 'GPU')
+
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 
 def load_data():
-    """Carrega os dados pré-processados"""
-    print("📊 Carregando dados...")
+    """Load preprocessed data"""
+    print("📊 Loading data...")
     train_df = pd.read_csv('data/train_data_scaled_manual.csv')
     test_df = pd.read_csv('data/test_data_scaled_manual.csv')
-    print(f"✅ Dados carregados: {len(train_df)} treino, {len(test_df)} teste")
+    print(f"✅ Data loaded: {len(train_df)} train, {len(test_df)} test")
     return train_df, test_df
 
 def prepare_data(train_df, test_df):
-    """Prepara os dados para o modelo LSTM"""
+    """Prepare data for LSTM model"""
     features = ['pressure_1', 'pressure_2', 'pressure_3', 'pressure_4', 'pressure_5', 'pressure_6', 'pressure_7']
     target = 'liquid_flow_rate'
     
-    # Separar features e target
+    # Separate features and target
     X_train = train_df[features].values
     y_train = train_df[target].values
     X_test = test_df[features].values
     y_test = test_df[target].values
     
-    # Reshape para LSTM
+    # Reshape for LSTM
     X_train_reshaped = np.reshape(X_train, (X_train.shape[0], 1, X_train.shape[1]))
     X_test_reshaped = np.reshape(X_test, (X_test.shape[0], 1, X_test.shape[1]))
     
-    print(f"✅ Dados preparados: X_train {X_train_reshaped.shape}, X_test {X_test_reshaped.shape}")
+    print(f"✅ Data prepared: X_train {X_train_reshaped.shape}, X_test {X_test_reshaped.shape}")
     return X_train_reshaped, y_train, X_test_reshaped, y_test
 
 def create_model():
-    """Cria o modelo LSTM"""
-    print("🤖 Criando modelo LSTM...")
+    """Create the LSTM model"""
+    print("🤖 Creating LSTM model...")
     model = Sequential()
     model.add(LSTM(50, input_shape=(1, 7)))
     model.add(Dense(1))
     model.compile(loss='mean_squared_error', optimizer='adam')
-    print(f"✅ Modelo criado: {model.count_params()} parâmetros")
+    print(f"✅ Model created: {model.count_params()} parameters")
     return model
 
 def train_model(model, X_train, y_train, X_test, y_test):
-    """Treina o modelo e retorna o histórico"""
-    print("🏋️ Iniciando treinamento...")
+    """Train the model and return history"""
+    print("🏋️ Starting training...")
     
-    # Treinar com histórico
+    # Train with history
     history = model.fit(
         X_train, y_train,
         epochs=50,
@@ -61,18 +69,18 @@ def train_model(model, X_train, y_train, X_test, y_test):
         shuffle=False
     )
     
-    print("✅ Treinamento concluído!")
+    print("✅ Training completed!")
     return history
 
 def save_model_and_history(model, history):
-    """Salva o modelo e o histórico de treinamento"""
-    print("💾 Salvando modelo e histórico...")
+    """Save model and training history"""
+    print("💾 Saving model and history...")
     
-    # Salvar modelo
+    # Save model
     model.save('model/meu_modelo_lstm.keras')
-    print("✅ Modelo salvo: model/meu_modelo_lstm.keras")
+    print("✅ Model saved: model/meu_modelo_lstm.keras")
     
-    # Salvar histórico como JSON
+    # Save history as JSON
     history_dict = {
         'loss': history.history['loss'],
         'val_loss': history.history['val_loss']
@@ -80,19 +88,19 @@ def save_model_and_history(model, history):
     
     with open('model/training_history.json', 'w') as f:
         json.dump(history_dict, f, indent=2)
-    print("✅ Histórico salvo: model/training_history.json")
+    print("✅ History saved: model/training_history.json")
     
     return history_dict
 
 def evaluate_model(model, X_test, y_test):
-    """Avalia o modelo e retorna métricas"""
-    print("📈 Avaliando modelo...")
+    """Evaluate the model and return metrics"""
+    print("📈 Evaluating model...")
     
-    # Fazer previsões
+    # Make predictions
     y_pred = model.predict(X_test, verbose=0)
     y_pred = y_pred.flatten()
     
-    # Calcular métricas
+    # Calculate metrics
     mse = mean_squared_error(y_test, y_pred)
     rmse = np.sqrt(mse)
     mae = mean_absolute_error(y_test, y_pred)
@@ -105,7 +113,7 @@ def evaluate_model(model, X_test, y_test):
         'r2': r2
     }
     
-    print("📊 Métricas finais:")
+    print("📊 Final metrics:")
     print(f"  MSE: {mse:.6f}")
     print(f"  RMSE: {rmse:.6f}")
     print(f"  MAE: {mae:.6f}")
@@ -114,43 +122,43 @@ def evaluate_model(model, X_test, y_test):
     return metrics
 
 def main():
-    """Função principal"""
-    print("🚀 Iniciando retreinamento do modelo LSTM com histórico...")
+    """Main function"""
+    print("🚀 Starting LSTM model retraining with history...")
     print("=" * 60)
     
     try:
-        # Carregar dados
+        # Load data
         train_df, test_df = load_data()
         
-        # Preparar dados
+        # Prepare data
         X_train, y_train, X_test, y_test = prepare_data(train_df, test_df)
         
-        # Criar modelo
+        # Create model
         model = create_model()
         
-        # Treinar modelo
+        # Train model
         history = train_model(model, X_train, y_train, X_test, y_test)
         
-        # Salvar modelo e histórico
+        # Save model and history
         history_dict = save_model_and_history(model, history)
         
-        # Avaliar modelo
+        # Evaluate model
         metrics = evaluate_model(model, X_test, y_test)
         
-        # Salvar métricas
+        # Save metrics
         with open('model/model_metrics.json', 'w') as f:
             json.dump(metrics, f, indent=2)
-        print("✅ Métricas salvas: model/model_metrics.json")
+        print("✅ Metrics saved: model/model_metrics.json")
         
         print("=" * 60)
-        print("🎉 Retreinamento concluído com sucesso!")
-        print("📁 Arquivos gerados:")
+        print("🎉 Retraining completed successfully!")
+        print("📁 Generated files:")
         print("  - model/meu_modelo_lstm.keras")
         print("  - model/training_history.json")
         print("  - model/model_metrics.json")
         
     except Exception as e:
-        print(f"❌ Erro durante o retreinamento: {e}")
+        print(f"❌ Error during retraining: {e}")
         return False
     
     return True
@@ -158,7 +166,6 @@ def main():
 if __name__ == "__main__":
     success = main()
     if success:
-        print("\n🚀 Agora você pode executar o app Streamlit atualizado!")
-        print("   streamlit run app.py")
+        print("\n🚀 Model retrained successfully! The API will use the updated model.")
     else:
-        print("\n⚠️  Verifique os erros acima antes de continuar.")
+        print("\n⚠️  Check the errors above before continuing.")

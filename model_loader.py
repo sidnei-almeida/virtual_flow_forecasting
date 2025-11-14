@@ -5,6 +5,14 @@ Module to load the trained LSTM model
 import os
 import logging
 from pathlib import Path
+
+# Force TensorFlow to use CPU only (disable GPU/CUDA)
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+
+import tensorflow as tf
+# Configure TensorFlow to use CPU only
+tf.config.set_visible_devices([], 'GPU')
+
 from tensorflow.keras.models import load_model
 import numpy as np
 
