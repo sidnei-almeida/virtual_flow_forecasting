@@ -7,11 +7,14 @@ import logging
 from pathlib import Path
 
 # Force TensorFlow to use CPU only (disable GPU/CUDA)
+# Must be set before importing TensorFlow
 os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # Suppress TensorFlow warnings (0=all, 1=exclude info, 2=exclude info and warnings, 3=exclude all)
 
 import tensorflow as tf
-# Configure TensorFlow to use CPU only
+# Configure TensorFlow to use CPU only and suppress warnings
 tf.config.set_visible_devices([], 'GPU')
+tf.get_logger().setLevel('ERROR')  # Suppress TensorFlow logging
 
 from tensorflow.keras.models import load_model
 import numpy as np

@@ -2,11 +2,18 @@
 REST API for liquid flow rate prediction using LSTM model
 """
 
+import os
+import logging
+
+# Configure TensorFlow environment BEFORE any imports
+# This ensures TensorFlow uses CPU only from the start
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # Suppress TensorFlow warnings
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field, validator
 from typing import List, Optional
-import logging
 import json
 from pathlib import Path
 from model_loader import model_loader
@@ -27,14 +34,14 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
-# Configure CORS
+# Configure CORS - Allow all origins for development and production
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins (for development and production)
-    allow_credentials=False,  # Cannot be True when allow_origins=["*"]
-    allow_methods=["*"],  # Allow all HTTP methods
-    allow_headers=["*"],  # Allow all headers
-    expose_headers=["*"],  # Expose all headers
+    allow_origins=["*"],  # Allow all origins
+    allow_credentials=False,  # Must be False when allow_origins=["*"]
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"],  # Allow all common methods
+    allow_headers=["*"],  # Allow all headers including Authorization, Content-Type, etc.
+    expose_headers=["*"],  # Expose all headers in response
     max_age=3600,  # Cache preflight requests for 1 hour
 )
 
@@ -123,18 +130,34 @@ async def startup_event():
 
 
 # Endpoints
-@app.get("/")
+@app.get("/", tags=["Root"])
 async def root():
-    """Root endpoint"""
+    """Root endpoint - Returns basic API information"""
     return {
         "message": "Virtual Flow Forecasting API",
         "version": "1.0.0",
         "docs": "/docs",
-        "health": "/health"
+        "health": "/health",
+        "base_url": "https://virtual-flow-forecasting.onrender.com"
     }
 
 
-@app.get("/health")
+@app.options("/{full_path:path}")
+async def options_handler(full_path: str):
+    """Handle OPTIONS requests for CORS preflight - Required for CORS to work properly"""
+    from fastapi.responses import Response
+    return Response(
+        status_code=200,
+        headers={
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, HEAD",
+            "Access-Control-Allow-Headers": "*",
+            "Access-Control-Max-Age": "3600"
+        }
+    )
+
+
+@app.get("/health", tags=["Health"])
 async def health_check():
     """Health check endpoint"""
     try:
@@ -154,7 +177,7 @@ async def health_check():
         }
 
 
-@app.post("/predict", response_model=PredictionResponse)
+@app.post("/predict", response_model=PredictionResponse, tags=["Prediction"])
 async def predict(pressure_input: PressureInput):
     """
     Makes a single liquid flow rate prediction
@@ -176,7 +199,7 @@ async def predict(pressure_input: PressureInput):
         raise HTTPException(status_code=500, detail=f"Internal error: {str(e)}")
 
 
-@app.post("/predict/batch", response_model=BatchPredictionResponse)
+@app.post("/predict/batch", response_model=BatchPredictionResponse, tags=["Prediction"])
 async def predict_batch(batch_input: BatchPressureInput):
     """
     Makes multiple batch predictions
@@ -198,7 +221,7 @@ async def predict_batch(batch_input: BatchPressureInput):
         raise HTTPException(status_code=500, detail=f"Internal error: {str(e)}")
 
 
-@app.get("/model/info", response_model=ModelInfoResponse)
+@app.get("/model/info", response_model=ModelInfoResponse, tags=["Model"])
 async def model_info():
     """Returns information about the LSTM model"""
     try:
@@ -219,7 +242,7 @@ async def model_info():
         raise HTTPException(status_code=500, detail=f"Internal error: {str(e)}")
 
 
-@app.get("/model/metrics", response_model=MetricsResponse)
+@app.get("/model/metrics", response_model=MetricsResponse, tags=["Model"])
 async def model_metrics():
     """Returns the model evaluation metrics"""
     try:

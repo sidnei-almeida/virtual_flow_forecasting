@@ -3,8 +3,12 @@ services:
     name: virtual-flow-forecasting-api
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT --workers 1 --timeout-keep-alive 5 --access-log
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0
+      - key: CUDA_VISIBLE_DEVICES
+        value: "-1"
+      - key: TF_CPP_MIN_LOG_LEVEL
+        value: "2"
 
